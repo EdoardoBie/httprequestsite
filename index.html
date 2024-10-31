@@ -1,15 +1,27 @@
 <html>
-<script>
-  var url = window.prompt("Inserisci l'URL: ");
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function () {
-    if (this.readyState == 4 && this.status == 200) {
-      window.alert(xhttp.responseText);
-    }
-  };
-  xhttp.open("GET", url, true);
-  xhttp.withCredentials = true;
-  xhttp.send()
-</script>
+
+<head>
+  <title>HTTPS Request</title>
+</head>
+
+<body>
+  <script>
+    var url = window.prompt("Inserisci l'URL: ");
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        //window.alert(xhttp.responseText);
+        var text = xhttp.responseText;
+        document.getElementById("paragraph").textContent = text;
+      }
+    };
+    xhttp.open("GET", url, true);
+    xhttp.withCredentials = true;
+    xhttp.send()
+  </script>
+
+  <p id="paragraph"></p>
+
+</body>
 
 </html>
