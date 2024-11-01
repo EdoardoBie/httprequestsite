@@ -1,34 +1,125 @@
-<html>
+<!DOCTYPE html>
+<html lang="it">
 
 <head>
-  <title>HTTPS Request with Cookie</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raccolta Dati</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+
+        #risultati {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
-  <script>
-    var url = "https://matrix-simplified.capturetheflags.site/";
-    var cookie = "eyJ1c2VybmFtZSI6Im5lbyJ9.ZyIkJQ.3WKTcmV6CRJXGA9vLHILr1WI858";
+    <h1>Raccolta Dati</h1>
+    <div id="origine"></div>
+    <div id="risultati"></div>
 
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        var text = xhttp.responseText;
-        document.getElementById("paragraph").textContent = text;
-      }
-    };
+    <script>
+        // Funzione per ottenere i parametri dall'URL
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            const result = {};
+            for (const [key, value] of params) {
+                result[key] = value;
+            }
+            return result;
+        }
 
-    xhttp.open("GET", url, true);
+        // Funzione per ottenere l'origine della richiesta
+        function getOrigine() {
+            return document.referrer || 'Accesso diretto';
+        }
 
-    // Imposta il cookie
-    xhttp.setRequestHeader("Cookie", cookie);
+        // Funzione per effettuare la richiesta HTTP
+        async function fetchData(url) {
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-    // Abilita l'invio di credenziali (importante per i cookie)
-    xhttp.withCredentials = true;
+                if (!response.ok) {
+                    throw new Error(`Errore HTTP: ${response.status}`);
+                }
 
-    xhttp.send();
-  </script>
+                return await response.json();
+            } catch (error) {
+                console.error('Errore durante la richiesta:', error);
+                throw error;
+            }
+        }
 
-  <p id="paragraph"></p>
+        // Funzione principale che gestisce la logica
+        async function main() {
+            const origineDiv = document.getElementById('origine');
+            const risultatiDiv = document.getElementById('risultati');
+            const origine = getOrigine();
+
+            origineDiv.innerHTML = `<p>Origine della richiesta: ${origine}</p>`;
+
+            try {
+                let data;
+                if (origine === 'Accesso diretto') {
+                    // Se è un accesso diretto, facciamo una richiesta a un endpoint predefinito
+                    data = await fetchData('https://matrix-simplified.capturetheflags.site/reportBug?');
+                } else {
+                    // Se viene da un altro sito, facciamo la richiesta all'origine
+                    data = await fetchData(origine);
+                }
+
+                // Mostra i risultati
+                risultatiDiv.innerHTML = `
+                    <h2>Dati ricevuti:</h2>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <div class="success">Dati recuperati con successo!</div>
+                `;
+            } catch (error) {
+                risultatiDiv.innerHTML = `
+                    <div class="error">
+                        Errore durante il recupero dei dati: ${error.message}
+                    </div>
+                `;
+            }
+
+            // Gestione dei parametri URL
+            const params = getQueryParams();
+            if (Object.keys(params).length > 0) {
+                risultatiDiv.innerHTML += `
+                    <h2>Parametri URL ricevuti:</h2>
+                    <pre>${JSON.stringify(params, null, 2)}</pre>
+                `;
+            }
+        }
+
+        // Esegui la funzione principale quando la pagina è caricata
+        document.addEventListener('DOMContentLoaded', main);
+    </script>
 </body>
 
 </html>
